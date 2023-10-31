@@ -12,7 +12,7 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = { text = "BSD 3-Clause" }
 
-[project.optional-dependencies]
+[tool.pdm.dev-dependencies]
 test = [
     "pytest>=7.4.3",
     "coverage>=7.3.2",
