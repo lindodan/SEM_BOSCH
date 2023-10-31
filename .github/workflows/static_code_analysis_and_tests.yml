@@ -1,0 +1,23 @@
+name: static_code_analysis_and_tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: 3.8
+          cache: true
+      - run: pdm install
+      - run: pdm lint
+      - run: pdm coverage
+      - uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
