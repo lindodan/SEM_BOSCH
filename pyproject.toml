@@ -7,6 +7,7 @@ authors = [
 ]
 dependencies = [
     "numpy>=1.24.4",
+    "pyserial>=3.5",
 ]
 requires-python = ">=3.8"
 readme = "README.md"
@@ -28,20 +29,9 @@ build-backend = "pdm.backend"
 
 [tool.pdm.scripts]
 test = "pytest -v tests/"
-
-[tool.pdm.scripts.coverage]
-shell = """
-    coverage run --source src -m pytest tests/
-    coverage xml
-"""
-
-[tool.pdm.scripts.lint]
-shell = """
-    ruff check src tests
-    black --check --diff --verbose src tests
-"""
-
-[tool.pdm.scripts.format]
-shell = """
-    black src tests
-"""
+coverage = "coverage run --source src -m pytest tests/"
+post_coverage = "coverage xml"
+ruff = "ruff check src tests examples"
+black = "black --check --diff --verbose src tests examples"
+format = "black src tests examples"
+lint = { composite = ["ruff", "black"] }
