@@ -4,7 +4,7 @@
 # Created on: 2023-10-31
 #     Author: Vladimir Petrik <vladimir.petrik@cvut.cz>
 #
-
+from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 
