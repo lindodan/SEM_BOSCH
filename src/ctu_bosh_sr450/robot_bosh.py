@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ctu_mars_control_unit import MarsControlUnit
+from ctu_bosh_sr450.circle_circle_intersection import circle_circle_intersection
 
 
 class RobotBosh:
@@ -24,6 +25,8 @@ class RobotBosh:
             else None
         )
         self.link_lengths = np.array([0.25, 0.2])
+        self._z_offset = 0.5  # what is the height of the end-effector when homed
+        # todo: calibrate z-offset
 
         # Constants for controlling the robot
         self._motors_ids = "ABCD"  # i.e. mars8 axes that are being controlled
@@ -188,23 +191,67 @@ class RobotBosh:
         """Wait until the robot stops moving."""
         self._mars.wait_ready()
 
+    def in_limits(self, q: ArrayLike) -> bool:
+        """Return whether the given joint configuration is in joint limits."""
+        return np.all(q >= self.q_min) and np.all(q <= self.q_max)
+
     def fk(self, q: ArrayLike) -> tuple[float, float, float, float]:
         """Compute forward kinematics for the given joint configuration @param q.
         The output is (x,y,z,phi) where x,y,z are position of the end-effector w.r.t.
-        the base frame and phi is the orientation of the end-effector w.r.t. the base.
+        the base frame and phi is the orientation around z-axis of the end-effector
+        w.r.t. the base.
         """
-        pass
+        q = np.asarray(q)
+        assert q.shape == (len(self._motors_ids),), "Incorrect number of joints."
+        l1, l2 = self.link_lengths
+        x = l1 * np.cos(q[0]) + l2 * np.cos(q[0] + q[1])
+        y = l1 * np.sin(q[0]) + l2 * np.sin(q[0] + q[1])
+        z = self._z_offset + q[2]
+        phi = np.arctan2(np.sin(q[3]), np.cos(q[3]))
+        return x, y, z, phi
 
-    def ik(
-        self, x: float, y: float, z: float = 0.25, phi: float = 0
+    def ik_xyz(
+        self, x: float, y: float, z: float = 0, q3: float = 0
     ) -> list[np.ndarray]:
         """Compute IK s.t. the end-effector is at the given position w.r.t. the
         reference frame. The last joint value is set to the given fixed value. It does
-        not influence solution of IK.
-        Internally, :param z is used to compute third (prismatic) joint value and
-        :param x and :param y are used to compute first and second (revolute) joint
-        values.
+        not influence solution of IK, it is just passed to the output.
+        Internally, :param x and :param y are used to compute first and second
+        (revolute) joint values. The :param z is used to compute third (prismatic) joint
+        value. Return all solutions that are in joint limits.
+        """
+        sols = []
+        bs = circle_circle_intersection(
+            np.zeros(2), self.link_lengths[0], [x, y], self.link_lengths[1]
+        )
+        for b in bs:
+            q = np.zeros(4)
+            q[0] = np.arctan2(*b[::-1])
+            rot = np.array(
+                [[np.cos(q[0]), -np.sin(q[0])], [np.sin(q[0]), np.cos(q[0])]]
+            )
+            d = rot.T @ (np.asarray([x, y]) - b)
+            q[1] = np.arctan2(*d[::-1])
+            q[2] = z - self._z_offset
+            q[3] = q3
+            if self.in_limits(q):
+                sols.append(q)
+        return sols
+
+    def ik(
+        self, x: float, y: float, z: float = 0.0, phi: float = 0
+    ) -> list[np.ndarray]:
+        """Compute IK s.t. the end-effector is at the given position w.r.t. the
+        reference frame. Internally xyz is computed by ik_xyz function for all possible
+        tool orientation (phi). Return all solutions that are in joint limits.
         If no solution exists, return empty list.
         """
-        # todo
-        return []
+        phi = np.arctan2(np.sin(phi), np.cos(phi))  # normalize to [-pi,pi]
+        sols = self.ik_xyz(x, y, z, phi)
+        for k in range(1, int((self.q_max[-1] - self.q_min[-1]) / (2 * np.pi)) + 1):
+            for plus_minus in [-1, 1]:
+                q3 = phi + plus_minus * k * 2 * np.pi
+                if self.q_min[-1] <= q3 <= self.q_max[-1]:
+                    sols.extend(self.ik_xyz(x, y, z, q3))
+
+        return sols

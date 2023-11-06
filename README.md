@@ -5,8 +5,23 @@ This code is based on `https://github.com/cvut/pyrocon` but adds packaging,
 documentation, and some testing.
 
 ## Installation
-
 ```bash
+pip install ctu_bosh_sr450
+```
+
+### Installation for old systems via Conda
+You need at least Python 3.7 to use this package. In case your python is old (Ubuntu in CIIRC labs has old 3.6), install updated version of python e.g. via miniconda:
+
+```
+# Install miniconda:
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+
+# Create conda environment with newer python and install ctu_bosh_sr450:
+conda create -n ctu_robotics python=3.8
+conda activate ctu_robotics
 pip install ctu_bosh_sr450
 ```
 
@@ -15,10 +30,19 @@ pip install ctu_bosh_sr450
 ```python
 from ctu_bosh_sr450 import RobotBosh
 
-robot = RobotBosh(tty_dev=None)
-robot.initialize()
-robot.move_to_q([0.1, 0.0, 0.0, 0.0])
-robot.close()
+robot = RobotBosh() # set argument tty_dev=None if you are not connected to robot, it will allow you to compute FK and IK offline
+robot.initialize() # initialize connection to the robot
+robot.move_to_q([0.1, 0.0, 0.0, 0.0]) # move robot
+robot.wait_for_motion_stop()
+robot.close() # close the connection
+```
+
+### Kinematics
+
+```python
+robot = RobotBosh(tty_dev=None) # initialize object without connection to the robot
+x, y, z, phi = robot.fk([0, 0, 0, 0]) # compute forward kinematics
+q = robot.ik([x, y, z, phi])[0] # compute inverse kinematics, get the first solution
 ```
 
 ## Coordinate systems
