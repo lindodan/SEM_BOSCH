@@ -8,7 +8,7 @@
 from unittest import TestCase
 import numpy as np
 
-from ctu_bosh_sr450.circle_circle_intersection import circle_circle_intersection
+from ctu_bosch_sr450.circle_circle_intersection import circle_circle_intersection
 
 
 class TestCircleCircleIntersection(TestCase):

@@ -10,11 +10,11 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ctu_mars_control_unit import MarsControlUnit
-from ctu_bosh_sr450.circle_circle_intersection import circle_circle_intersection
+from ctu_bosch_sr450.circle_circle_intersection import circle_circle_intersection
 
 
-class RobotBosh:
-    """RobotBosh is a class representing the Bosh SR450 robot. It has access to the
+class RobotBosch:
+    """RobotBosch is a class representing the Bosch SR450 robot. It has access to the
     robot's control unit and basic kinematics functions."""
 
     def __init__(self, tty_dev: str | None = "/dev/ttyUSB0", baudrate: int = 19200):

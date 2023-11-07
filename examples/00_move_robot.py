@@ -4,9 +4,9 @@
 # Created on: 2023-10-31
 #     Author: Vladimir Petrik <vladimir.petrik@cvut.cz>
 #
-from ctu_bosh_sr450 import RobotBosh
+from ctu_bosch_sr450 import RobotBosch
 
-robot = RobotBosh(tty_dev=None)
+robot = RobotBosch(tty_dev=None)
 robot.initialize()
 
 print(f"Joint configuration: {robot.get_q()}")

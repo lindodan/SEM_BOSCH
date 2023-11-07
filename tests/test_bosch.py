@@ -6,12 +6,12 @@
 #
 import unittest
 import numpy as np
-from ctu_bosh_sr450 import RobotBosh
+from ctu_bosch_sr450 import RobotBosch
 
 
-class TestBosh(unittest.TestCase):
+class TestBosch(unittest.TestCase):
     def test_fk(self):
-        robot = RobotBosh(tty_dev=None)
+        robot = RobotBosch(tty_dev=None)
         x, y, _, phi = robot.fk([0, 0, 0, 0])
         self.assertAlmostEqual(x, np.sum(robot.link_lengths))
         self.assertAlmostEqual(y, 0.0)
@@ -30,7 +30,7 @@ class TestBosh(unittest.TestCase):
 
     def test_ik_xyz(self):
         np.random.seed(0)
-        robot = RobotBosh(tty_dev=None)
+        robot = RobotBosch(tty_dev=None)
         for _ in range(1000):
             q = np.random.uniform(robot.q_min, robot.q_max)
             x, y, z, phi = robot.fk(q)
@@ -46,7 +46,7 @@ class TestBosh(unittest.TestCase):
 
     def test_ik_xyzphi(self):
         np.random.seed(0)
-        robot = RobotBosh(tty_dev=None)
+        robot = RobotBosch(tty_dev=None)
         for _ in range(1000):
             q = np.random.uniform(robot.q_min, robot.q_max)
             x, y, z, phi = robot.fk(q)
