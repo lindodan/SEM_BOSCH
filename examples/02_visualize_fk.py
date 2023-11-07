@@ -7,9 +7,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ctu_bosh_sr450 import RobotBosh
+from ctu_bosch_sr450 import RobotBosch
 
-robot = RobotBosh(tty_dev=None)
+robot = RobotBosch(tty_dev=None)
 
 xy = []
 for q0 in np.linspace(robot.q_min[0], robot.q_max[0]):

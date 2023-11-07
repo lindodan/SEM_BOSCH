@@ -6,9 +6,9 @@
 #
 import numpy as np
 
-from ctu_bosh_sr450 import RobotBosh
+from ctu_bosch_sr450 import RobotBosch
 
-robot = RobotBosh(tty_dev=None)
+robot = RobotBosch(tty_dev=None)
 robot.initialize()
 
 ik_solutions = robot.ik(x=0.25, y=0.25, z=-0.1, phi=np.deg2rad(45))
