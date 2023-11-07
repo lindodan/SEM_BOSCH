@@ -74,7 +74,7 @@ class RobotBosch:
         """Close connection to the robot."""
         self._mars.close_connection()
 
-    def initialize(self):
+    def initialize(self, home: bool = True):
         """Initialize communication with robot and set all necessary parameters.
         This command will perform following settings:
          - synchronize communication with mars control unit
@@ -82,7 +82,7 @@ class RobotBosch:
          - reset motors and wait for them to be ready
          - set PID control parameters, maximum speed and acceleration
          - set value for IDLE release
-         - perform hard home and soft home
+         - perform hard home and soft home, if @param home is True
         """
         self._mars.sync_cmd_fifo()
 
@@ -109,8 +109,9 @@ class RobotBosch:
 
         self._mars.send_cmd(f"IDLEREL:{self._IDLEREL}\n")
 
-        self.hard_home()
-        self.soft_home()
+        if home:
+            self.hard_home()
+            self.soft_home()
         self._initialized = True
 
     def _joint_values_to_irc(self, joint_values: ArrayLike) -> np.ndarray:

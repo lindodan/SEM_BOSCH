@@ -1,17 +1,19 @@
 # BOSCH SR450 Robot at CTU/CIIRC
 
-
 Package to control CTU/CIIRC robot Bosch SR450 via MARS control unit.
 This code is based on `https://github.com/cvut/pyrocon` but adds packaging,
 documentation, and some testing.
 
 ## Installation
+
 ```bash
 pip install ctu_bosch_sr450
 ```
 
 ### Installation for old systems via Conda
-You need at least Python 3.7 to use this package. In case your python is old (Ubuntu in CIIRC labs has old 3.6), install updated version of python e.g. via miniconda:
+
+You need at least Python 3.7 to use this package. In case your python is old (Ubuntu in
+CIIRC labs has old 3.6), install updated version of python e.g. via miniconda:
 
 ```
 # Install miniconda:
@@ -31,19 +33,19 @@ pip install ctu_bosch_sr450
 ```python
 from ctu_bosch_sr450 import RobotBosch
 
-robot = RobotBosch() # set argument tty_dev=None if you are not connected to robot, it will allow you to compute FK and IK offline
-robot.initialize() # initialize connection to the robot
-robot.move_to_q([0.1, 0.0, 0.0, 0.0]) # move robot
+robot = RobotBosch()  # set argument tty_dev=None if you are not connected to robot, it will allow you to compute FK and IK offline
+robot.initialize()  # initialize connection to the robot
+robot.move_to_q([0.1, 0.0, 0.0, 0.0])  # move robot
 robot.wait_for_motion_stop()
-robot.close() # close the connection
+robot.close()  # close the connection
 ```
 
 ### Kinematics
 
 ```python
-robot = RobotBosch(tty_dev=None) # initialize object without connection to the robot
-x, y, z, phi = robot.fk([0, 0, 0, 0]) # compute forward kinematics
-q = robot.ik([x, y, z, phi])[0] # compute inverse kinematics, get the first solution
+robot = RobotBosch(tty_dev=None)  # initialize object without connection to the robot
+x, y, z, phi = robot.fk([0, 0, 0, 0])  # compute forward kinematics
+q = robot.ik([x, y, z, phi])[0]  # compute inverse kinematics, get the first solution
 ```
 
 ## Coordinate systems
@@ -68,3 +70,46 @@ The joint configuration is defined as follows:
 - the third joint is prismatic and controls the height (i.e. motion in z-axis)
 - the last joint is revolute and measured w.r.t. the x-axis of the base frame (i.e. *
   *not** w.r.t. the previous link)
+
+## How to control the robot
+
+__In case robot does anything unexpected, press the emergency button immediately.__
+
+### Starting the robot
+
+- power up the robot with red switch on the Mars control panel
+- create RobotBosh() instance and call initialize()
+- you will be asked to press the yellow button (Arm Power) on the Mars control panel
+- robot will perform homing after which you are able to control it with this library
+
+### Finishing the work with the robot
+
+- to turn robot of call soft_home() followed by the close() methods
+- turn red switch off
+
+### Entering the cage
+
+- to enter the cage, you need to call release() function, that will power-off the motors
+  and activate breaks
+
+### Recovering from error
+
+#### Emergency stop or cage entry
+
+- unblock emergency stop button and/or closed the cage
+- press red button called MotionStop on the Mars control panel
+- press yellow button called ArmPower on the Mars control panel
+- continue with normal operation
+
+#### Motor error
+
+- in case green led above motor axis is blinking and red led is on, there is a motor
+  error
+- to reset motors call reset_motors() method
+
+## Hard home
+
+Hard home is needed after the control unit power was turned off. It is performed
+automatically in the initialize() method. However, it needs to be performed only after
+the power was turned off and on again. In case the connection needs to be reestablished,
+you can call initialize without homing by setting the argument home to False.
