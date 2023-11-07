@@ -26,7 +26,6 @@ class RobotBosch:
         )
         self.link_lengths = np.array([0.25, 0.2])
         self._z_offset = 0.5  # what is the height of the end-effector when homed
-        # todo: calibrate z-offset
 
         # Constants for controlling the robot
         self._motors_ids = "ABCD"  # i.e. mars8 axes that are being controlled
@@ -186,7 +185,7 @@ class RobotBosch:
 
     def in_motion(self) -> bool:
         """Return whether the robot is in motion."""
-        return self._mars.check_ready()
+        return not self._mars.check_ready()
 
     def wait_for_motion_stop(self):
         """Wait until the robot stops moving."""
