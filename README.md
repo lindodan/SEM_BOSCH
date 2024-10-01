@@ -113,3 +113,11 @@ Hard home is needed after the control unit power was turned off. It is performed
 automatically in the initialize() method. However, it needs to be performed only after
 the power was turned off and on again. In case the connection needs to be reestablished,
 you can call initialize without homing by setting the argument home to False.
+
+## Acknowledgment
+
+Preparation of the course materials was partially supported by:
+
+![](https://raw.githubusercontent.com/CTURobotics/ctu_bosch_sr450/main/doc//NPO-publicity-logo_crop.png)
+
+
