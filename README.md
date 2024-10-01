@@ -118,6 +118,6 @@ you can call initialize without homing by setting the argument home to False.
 
 Preparation of the course materials was partially supported by:
 
-![](https://raw.githubusercontent.com/CTURobotics/ctu_bosch_sr450/main/doc//NPO-publicity-logo_crop.png)
+![](https://raw.githubusercontent.com/CTURobotics/ctu_bosch_sr450/main/doc/NPO-publicity-logo_crop.png)
 
 
