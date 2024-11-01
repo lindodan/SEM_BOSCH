@@ -46,5 +46,6 @@ def circle_circle_intersection(
     y3 = y2 - h * (x1 - x0) / d
     x4 = x2 - h * (y1 - y0) / d
     y4 = y2 + h * (x1 - x0) / d
-
-    return [np.array([x3, y3]), np.array([x4, y4])]
+    out = [np.array([x3, y3]), np.array([x4, y4])]
+    np.random.shuffle(out)
+    return out

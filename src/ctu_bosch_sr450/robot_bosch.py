@@ -17,7 +17,7 @@ class RobotBosch:
     """RobotBosch is a class representing the Bosch SR450 robot. It has access to the
     robot's control unit and basic kinematics functions."""
 
-    def __init__(self, tty_dev: str | None = "/dev/ttyUSB0", baudrate: int = 19200):
+    def __init__(self, tty_dev: str | None = "/dev/mars", baudrate: int = 19200):
         super().__init__()
         self._mars = (
             MarsControlUnit(tty_dev=tty_dev, baudrate=baudrate)
@@ -236,6 +236,7 @@ class RobotBosch:
             q[3] = q3
             if self.in_limits(q):
                 sols.append(q)
+        np.random.shuffle(sols)
         return sols
 
     def ik(
@@ -253,5 +254,5 @@ class RobotBosch:
                 q3 = phi + plus_minus * k * 2 * np.pi
                 if self.q_min[-1] <= q3 <= self.q_max[-1]:
                     sols.extend(self.ik_xyz(x, y, z, q3))
-
+        np.random.shuffle(sols)
         return sols
