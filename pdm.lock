@@ -5,7 +5,7 @@
 groups = ["default", "lint", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:40c1cef72b6a2806aeb28f041f50283a2d3a575c1bd18e0bca213ade5b539570"
+content_hash = "sha256:0eb134ffc3e28a1ed59477d984fcb088a745aa8d304f5f272e772efd7ce8bf88"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -136,7 +136,7 @@ files = [
 
 [[package]]
 name = "ctu-mars-control-unit"
-version = "0.1.1"
+version = "0.1.3"
 requires_python = ">=3.8"
 summary = "MARS control unit that is used to control robots at CIIRC/CTU"
 groups = ["default"]
@@ -145,8 +145,8 @@ dependencies = [
     "pyserial>=3.5",
 ]
 files = [
-    {file = "ctu_mars_control_unit-0.1.1-py3-none-any.whl", hash = "sha256:d02409bc4611ae56e72ae1cc09dfd26b80f10027c934444d1406eef0e1db76d1"},
-    {file = "ctu_mars_control_unit-0.1.1.tar.gz", hash = "sha256:37663cc2edb77a6bd16ea8dab53ba35539a4af8292e5fd97c87bdf14c9d9513d"},
+    {file = "ctu_mars_control_unit-0.1.3-py3-none-any.whl", hash = "sha256:0c2c517a37655d18161790ee2f489e904ea6585e754c383885da9eae792744bb"},
+    {file = "ctu_mars_control_unit-0.1.3.tar.gz", hash = "sha256:166127e7a7042cc8186497fa115d25c32319980247262d4579cdb23d842ee789"},
 ]
 
 [[package]]
