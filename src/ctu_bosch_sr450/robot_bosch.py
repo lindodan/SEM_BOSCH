@@ -89,7 +89,6 @@ class RobotBosch:
         input("Press ARM POWER button and then press enter to continue.")
         self._mars.send_cmd(f"REGPWRFLG:{self._REGPWRFLG}\n")
 
-        print("Resetting motors")
         self._mars.send_cmd("PURGE:\n")
         self._mars.send_cmd("STOP:\n")
         assert self._mars.check_ready()
