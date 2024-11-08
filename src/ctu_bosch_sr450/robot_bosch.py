@@ -128,7 +128,7 @@ class RobotBosch:
         """Set speed for each motor in IRC*256/msec."""
         assert len(speed_irc256_ms) == len(self._motors_ids)
         for axis, speed in zip(self._motors_ids, speed_irc256_ms):
-            self._mars.send_cmd(f"REGMS:{axis}:{np.rint(speed)}\n")
+            self._mars.send_cmd(f"REGMS{axis}:{np.rint(speed)}\n")
 
     def set_speed_relative(self, fraction: float):
         """Set speed for each motor in fraction (0-1) of maximum speed."""
@@ -142,7 +142,7 @@ class RobotBosch:
         """Set acceleration for each motor in IRC/msec."""
         assert len(acceleration_irc_ms) == len(self._motors_ids)
         for axis, acceleration in zip(self._motors_ids, acceleration_irc_ms):
-            self._mars.send_cmd(f"REGACC:{axis}:{np.rint(acceleration)}\n")
+            self._mars.send_cmd(f"REGACC{axis}:{np.rint(acceleration)}\n")
 
     def set_acceleration_relative(self, fraction: float):
         """Set acceleration for each motor in fraction (0-1) of maximum acceleration."""
