@@ -11,8 +11,8 @@ from ctu_bosch_sr450 import RobotBosch
 robot = RobotBosch()
 robot.initialize()
 
-ik_solutions = robot.ik(x=0.20, y=0.30, z=-0.1, phi=np.deg2rad(45))
-ik_solutions2 = robot.ik_xyz(x=0.30, y=0.20)
+ik_solutions = robot.ik(x=0.20, y=0.30, z=0.2, phi=np.deg2rad(45))
+ik_solutions2 = robot.ik_xyz(x=0.30, y=0.20,z=0.3)
 print(ik_solutions2)
 print(ik_solutions)
 for solution in ik_solutions:
