@@ -6,7 +6,7 @@
 #
 from ctu_bosch_sr450 import RobotBosch
 
-robot = RobotBosch(tty_dev=None)
+robot = RobotBosch()
 robot.initialize()
 
 print(f"Joint configuration: {robot.get_q()}")
