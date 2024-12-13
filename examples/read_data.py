@@ -15,9 +15,12 @@ img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # Edge detection using the Canny detector
 edges = cv2.Canny(img_gray, 50, 150)
-
+cv2.imshow("edges",edges)
+cv2.imshow("img",img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 # Find contours (detect lines)
-contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+contours, _ = cv2.findContours(img_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 # Initialize the list for robot coordinates in mm
 robot_coordinates_mm = []

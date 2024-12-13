@@ -15,7 +15,7 @@ robot = RobotBosch()
 robot.initialize()
 
 # Path to the saved coordinates file
-script_dir = Path(__file__).parent
+script_dir = Path(__file__).parent.parent
 coordinates_file = script_dir / "drawings" / "robot_coordinates.txt"
 
 # Read the coordinates from the file
@@ -65,7 +65,7 @@ cv2.destroyAllWindows()
 
 # Solve IK for the first point to get the initial configuration
 x_start, y_start = reduced_coordinates[0]
-z_start = 0.2  # Fixed Z height
+z_start = 0.4  # Fixed Z height
 phi = np.deg2rad(45)  # Fixed orientation
 
 initial_ik_solutions = robot.ik(x=x_start, y=y_start, z=z_start, phi=phi)
