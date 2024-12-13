@@ -17,7 +17,7 @@ img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 edges = cv2.Canny(img_gray, 50, 150)
 
 # Find contours (detect lines)
-contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 # Initialize the list for robot coordinates in mm
 robot_coordinates_mm = []
