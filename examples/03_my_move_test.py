@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-
+#
+# Copyright (c) CTU -- All Rights Reserved
+# Created on: 2023-10-31
+#     Author: Vladimir Petrik <vladimir.petrik@cvut.cz>
+#
 import numpy as np
+import cv2
 from pathlib import Path
 from scipy.spatial import KDTree
 from ctu_bosch_sr450 import RobotBosch
@@ -10,41 +15,68 @@ robot = RobotBosch()
 robot.initialize()
 
 # Path to the saved coordinates file
-script_dir = Path(__file__).parent.parent
-print(script_dir)
+script_dir = Path(__file__).parent
 coordinates_file = script_dir / "drawings" / "robot_coordinates.txt"
 
 # Read the coordinates from the file
 with open(coordinates_file, "r") as f:
     coordinates = [tuple(map(float, line.strip().split(","))) for line in f]
 
-def approximate_path(points,num_points):
+# Function to approximate the path with fewer points
+def approximate_path(points, num_points):
     tree = KDTree(points)
-    sample_indicies = np.linspace(0,len(points)-1,num_points)
-    sample_points = [points[i] for i in sample_indicies]
-    return sample_points
+    sampled_indices = np.linspace(0, len(points) - 1, num_points, dtype=int)
+    sampled_points = [points[i] for i in sampled_indices]
+    return sampled_points
 
-reduced_coordinates = approximate_path(coordinates,num_points=30)
+# Reduce the number of points for the trajectory
+reduced_coordinates = approximate_path(coordinates, num_points=50)
 
-q0 = robot.get_q()
+# Visualize the reduced path using OpenCV
+img_size = 1000
+img = np.zeros((img_size, img_size, 3), dtype=np.uint8)
 
+# Normalize coordinates for visualization
+def normalize_coordinates(points, img_size):
+    x_coords, y_coords = zip(*points)
+    x_min, x_max = min(x_coords), max(x_coords)
+    y_min, y_max = min(y_coords), max(y_coords)
 
+    def scale(val, min_val, max_val):
+        return int((val - min_val) / (max_val - min_val) * (img_size - 20) + 10)
+
+    normalized_points = [(scale(x, x_min, x_max), img_size - scale(y, y_min, y_max)) for x, y in points]
+    return normalized_points
+
+normalized_coordinates = normalize_coordinates(reduced_coordinates, img_size)
+
+# Draw the path
+for i in range(len(normalized_coordinates) - 1):
+    cv2.line(img, normalized_coordinates[i], normalized_coordinates[i + 1], (0, 255, 0), 2)
+
+# Draw points
+for point in normalized_coordinates:
+    cv2.circle(img, point, 5, (0, 0, 255), -1)
+
+# Show the visualization
+cv2.imshow("Reduced Path Visualization", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# Solve IK for the first point to get the initial configuration
 x_start, y_start = reduced_coordinates[0]
 z_start = 0.2  # Fixed Z height
 phi = np.deg2rad(45)  # Fixed orientation
 
-ik_solutions = robot.ik(x=x_start, y=y_start, z=z_start, phi=phi)
+initial_ik_solutions = robot.ik(x=x_start, y=y_start, z=z_start, phi=phi)
 
-if len(ik_solutions) > 0:
-    initial_solution = min(ik_solutions,key=lambda q:np.linalg.norm(q-q0))
-
-
-if not ik_solutions:
+if not initial_ik_solutions:
     print(f"No IK solution found for the starting point ({x_start}, {y_start}, {z_start})")
     robot.close()
     exit(1)
 
 # Use the first valid solution for the entire path
+initial_solution = initial_ik_solutions[0]
 print(f"Using initial joint configuration: {initial_solution}")
 robot.move_to_q(initial_solution)
 robot.wait_for_motion_stop()
@@ -52,11 +84,6 @@ robot.wait_for_motion_stop()
 # Iterate through the reduced trajectory using the initial IK solution
 for x, y in reduced_coordinates:
     z = 0.2  # Assuming a fixed Z height for simplicity
-
-    # Validate the initial solution for the current point
-    if not robot.is_valid_solution(initial_solution, x=x, y=y, z=z, phi=phi):
-        print(f"Initial solution is not valid for point ({x}, {y}, {z})")
-        continue
 
     print(f"Moving to ({x}, {y}, {z}) with the initial configuration.")
     robot.move_to_q(initial_solution)
