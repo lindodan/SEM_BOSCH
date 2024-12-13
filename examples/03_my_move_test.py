@@ -9,7 +9,8 @@ robot = RobotBosch()
 robot.initialize()
 
 # Path to the saved coordinates file
-script_dir = Path(__file__).parent
+script_dir = Path(__file__).parent.parent
+print(script_dir)
 coordinates_file = script_dir / "drawings" / "robot_coordinates.txt"
 
 # Read the coordinates from the file
