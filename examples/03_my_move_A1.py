@@ -7,7 +7,6 @@
 import numpy as np
 import cv2
 from pathlib import Path
-from scipy.spatial import KDTree
 from ctu_bosch_sr450 import RobotBosch
 
 # Initialize the robot
@@ -103,7 +102,6 @@ def main():
 
     # Step 3: Visualize the reordered path
     visualize_path(ordered_coordinates)
-
     # Step 4: Solve IK for the first point to fix initial configuration
     x_start, y_start = ordered_coordinates[0]
     z_start = 0.4  # Fixed Z height
@@ -116,17 +114,30 @@ def main():
         return
 
     # Use the first valid solution for the entire trajectory
-    initial_solution = ik_solutions[0]
-    print(f"Using fixed joint configuration: {initial_solution}")
-    robot.move_to_q(initial_solution)
-    robot.wait_for_motion_stop()
+    reference_solution = ik_solutions[0]
+    print(f"Using fixed joint configuration: {reference_solution}")
+    #robot.move_to_q(reference_solution)
+    #robot.wait_for_motion_stop()
 
     # Step 5: Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
         z = 0.2  # Constant Z height for simplicity
-        print(f"Moving to ({x}, {y}, {z}) with fixed IK solution.")
-        robot.move_to_q(initial_solution)  # Keep the same joint configuration
-        robot.wait_for_motion_stop()
+        ik_solutions = robot.ik(x=x, y=y, z=z, phi=phi)
+        if not ik_solutions:
+            print(f"No IK solution for point ({x}, {y}, {z})")
+            continue
+
+        # Select the solution closest to the reference solution
+        closest_solution = min(
+            ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+        )
+
+        print(f"Moving to ({x}, {y}, {z}) with closest IK solution: {closest_solution}")
+        #robot.move_to_q(closest_solution)
+        #robot.wait_for_motion_stop()
+
+        # Update reference solution
+        reference_solution = closest_solution
 
     # Step 6: Close the robot connection
     robot.close()

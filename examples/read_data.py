@@ -6,7 +6,7 @@ from pathlib import Path
 script_dir = Path(__file__).parent.parent / 'drawings'
 print(f"Script directory: {script_dir}")
 
-image_path = script_dir / "C-1.png"
+image_path = script_dir / "A-1.png"
 img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
 # Step 2: Invert and Threshold the image
