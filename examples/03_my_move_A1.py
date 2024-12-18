@@ -10,8 +10,8 @@ from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
 # Initialize the robot
-robot = RobotBosch(tty_dev=None)
-#robot.initialize()
+robot = RobotBosch()
+robot.initialize()
 
 # Path to the saved coordinates file
 script_dir = Path(__file__).parent.parent
@@ -87,7 +87,7 @@ def visualize_path(points, img_size=500):
 def main():
     # Step 1: Load and reduce trajectory points
     coordinates = read_coordinates(coordinates_file)
-    reduced_coordinates = approximate_path(coordinates, num_points=40)
+    reduced_coordinates = approximate_path(coordinates, num_points=20)
 
     print("Reduced Coordinates:")
     for coord in reduced_coordinates:
@@ -116,8 +116,8 @@ def main():
     # Use the first valid solution for the entire trajectory
     reference_solution = ik_solutions[0]
     print(f"Using fixed joint configuration: {reference_solution}")
-    #robot.move_to_q(reference_solution)
-    #robot.wait_for_motion_stop()
+    robot.move_to_q(reference_solution)
+    robot.wait_for_motion_stop()
 
     # Step 5: Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
@@ -133,13 +133,15 @@ def main():
         )
 
         print(f"Moving to ({x}, {y}, {z}) with closest IK solution: {closest_solution}")
-        #robot.move_to_q(closest_solution)
-        #robot.wait_for_motion_stop()
+        robot.move_to_q(closest_solution)
+        robot.wait_for_motion_stop()
 
         # Update reference solution
+
         reference_solution = closest_solution
 
     # Step 6: Close the robot connection
+    robot.soft_home()
     robot.close()
     print("Trajectory execution complete.")
 

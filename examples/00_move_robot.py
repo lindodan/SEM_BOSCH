@@ -4,12 +4,14 @@
 # Created on: 2023-10-31
 #     Author: Vladimir Petrik <vladimir.petrik@cvut.cz>
 #
+import numpy as np
 from ctu_bosch_sr450 import RobotBosch
 
 robot = RobotBosch()
 robot.initialize()
 
 print(f"Joint configuration: {robot.get_q()}")
+print(f"deg {np.rad2deg(robot.get_q())}")
 robot.move_to_q([0.4, 0.0, 0.0, 0.0])
 robot.wait_for_motion_stop()
 
