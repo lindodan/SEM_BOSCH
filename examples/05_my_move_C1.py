@@ -92,6 +92,7 @@ def main():
         z_drawing = 0.2  # Drawing height
         z_rise = 0.5  # Safe height
         ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
+        print(f"Len ik_solutios: {len(ik_solutions)}")
 
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z_drawing}). Skipping...")
@@ -109,7 +110,6 @@ def main():
                     ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
                 )
             zone = 2
-
         print(f"Point {idx}: Zone {zone}, Moving to ({x}, {y}, {z_drawing}) with solution: {chosen_solution}")
 
         # Handle transition from Zone 2 to Zone 3
