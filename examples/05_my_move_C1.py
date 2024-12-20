@@ -81,11 +81,11 @@ def main():
     visualize_path(ordered_coordinates)
 
     reference_solution = None
-    zone_3_solution = None
-    zone_2_revisit_points = []
-
-    # Initialize previous zone
+    # Initialize variables for tracking zones
     previous_zone = None
+    zone_3_solution = None
+    last_zone_2_points = []  # To store the last two Zone 2 points
+    z_drawing = 0.2
 
     for idx, (x, y) in enumerate(ordered_coordinates):
         z_drawing = 0.2  # Drawing height
@@ -96,6 +96,7 @@ def main():
             print(f"No IK solution for point ({x}, {y}, {z_drawing}). Skipping...")
             continue
 
+        # Determine the zone and the chosen IK solution
         if len(ik_solutions) == 1:
             chosen_solution = ik_solutions[0]
             zone = 1 if reference_solution is None or np.array_equal(reference_solution, chosen_solution) else 3
@@ -110,50 +111,42 @@ def main():
 
         print(f"Point {idx}: Zone {zone}, Moving to ({x}, {y}, {z_drawing}) with solution: {chosen_solution}")
 
+        # Handle transition from Zone 2 to Zone 3
         if previous_zone == 2 and zone == 3:
-            # Transition from Zone 2 to Zone 3 detected
-            print(f"Transitioning from Zone 2 to Zone 3: Rising up to safe height...")
-            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_rise)[0])  # Move up
-            robot.wait_for_motion_stop()
+            print("Transitioning from Zone 2 to Zone 3: Rising up to safe height...")
+            #robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_rise)[0])  # Move up
+            #robot.wait_for_motion_stop()
 
         # Move to the point with the chosen IK solution
-        robot.move_to_q(chosen_solution)
-        robot.wait_for_motion_stop()
+        #robot.move_to_q(chosen_solution)
+        #robot.wait_for_motion_stop()
 
+        # Lower back to drawing height after transition
         if previous_zone == 2 and zone == 3:
-            # Lower back to drawing height after transition
-            print(f"Lowering back to drawing height...")
-            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_drawing)[0])
-            robot.wait_for_motion_stop()
+            print("Lowering back to drawing height...")
+            #robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_drawing)[0])
+            #robot.wait_for_motion_stop()
+
+        # Track Zone 2 points
+        if zone == 2:
+            last_zone_2_points.append((x, y, chosen_solution))
+            if len(last_zone_2_points) > 2:
+                last_zone_2_points.pop(0)  # Keep only the last two points
 
         # Track the previous zone
         previous_zone = zone
 
-        if zone == 3:
-            zone_3_solution = chosen_solution
-            zone_2_revisit_points.append((idx, (x, y, z_drawing)))
-
         # Update reference solution
         reference_solution = chosen_solution
 
-    # Handle Zone 2 revisit points
-    if zone_3_solution:
-        print("Revisiting Zone 2 points with Zone 3 solution compatibility...")
-        for idx, (x, y, z) in zone_2_revisit_points:
-            ik_solutions = robot.ik_xyz(x=x, y=y, z=z)
-            valid_solutions = [
-                q for q in ik_solutions if np.array_equal(q, zone_3_solution)
-            ]
-            if valid_solutions:
-                chosen_solution = valid_solutions[0]
-                print(f"Revisiting Point {idx} with solution: {chosen_solution}")
-                # Uncomment to move the robot
-                # robot.move_to_q(chosen_solution)
-                # robot.wait_for_motion_stop()
+    # Revisit the last two points from Zone 2
+    if last_zone_2_points:
+        print("\nRevisiting last two points from Zone 2...")
+        for idx, (x, y, solution) in enumerate(last_zone_2_points):
+            print(f"Revisiting Zone 2 Point {idx}: ({x}, {y}, {z_drawing}) with solution: {solution}")
+            #robot.move_to_q(solution)
+            #robot.wait_for_motion_stop()
 
-    robot.soft_home()
-    robot.close()
-    print("Trajectory execution complete.")
 
 if __name__ == "__main__":
     main()
