@@ -118,10 +118,11 @@ def main():
             print("Transitioning from Zone 2 to Zone 3: Revisiting Zone 2 points using Zone 3 IK solution...")
             for revisit_idx, (original_idx, px, py, _) in enumerate(last_zone_2_points):
                 revisit_ik_solutions = robot.ik_xyz(x=px, y=py, z=z_drawing)
+                print(f"revisit ik solutions : {revisit_ik_solutions}")
                 if revisit_ik_solutions:
-                    zone_3_revisit_solution = revisit_ik_solutions[0]  # Use the first solution from Zone 3
-                    print(
-                        f"Revisiting Zone 2 Point {revisit_idx} (Original Index: {original_idx}) with Zone 3 solution: {zone_3_revisit_solution}")
+                    zone_3_revisit_solution = min(
+                    revisit_ik_solutions, key=lambda q: np.linalg.norm(q - chosen_solution))  # Use the first solution from Zone 3
+                    print(f"Revisiting Zone 2 Point {revisit_idx} (Original Index: {original_idx}) with Zone 3 solution: {zone_3_revisit_solution}")
                     robot.move_to_q(robot.ik_xyz(x=px, y=py, z=z_rise)[0])  # Move up
                     robot.wait_for_motion_stop()
                     robot.move_to_q(zone_3_revisit_solution)
