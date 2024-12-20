@@ -10,8 +10,8 @@ from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
 # Initialize the robot
-robot = RobotBosch()
-robot.initialize()
+robot = RobotBosch(tty_dev=None)
+#robot.initialize()
 
 # Path to the saved coordinates file
 script_dir = Path(__file__).parent.parent
@@ -107,7 +107,8 @@ def main():
     z_start = 0.4  # Fixed Z height
     phi = np.deg2rad(45)  # Fixed orientation
 
-    ik_solutions = robot.ik(x=x_start, y=y_start, z=z_start, phi=phi)
+    ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
+    print(f"IK solutions: {len(ik_solutions)}")
     if not ik_solutions:
         print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
         robot.close()
@@ -116,13 +117,14 @@ def main():
     # Use the solution that is valid for entire trajectory
     reference_solution = ik_solutions[0]
     print(f"Using fixed joint configuration: {reference_solution}")
-    robot.move_to_q(reference_solution)
-    robot.wait_for_motion_stop()
+    #robot.move_to_q(reference_solution)
+    #robot.wait_for_motion_stop()
 
     # Step 5: Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
         z = 0.2  # Constant Z height for simplicity
-        ik_solutions = robot.ik(x=x, y=y, z=z, phi=phi)
+        ik_solutions = robot.ik_xyz(x=x, y=y, z=z)
+        print(f"IK solutions: {len(ik_solutions)}")
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z})")
             continue
@@ -133,8 +135,8 @@ def main():
         )
 
         print(f"Moving to ({x}, {y}, {z}) with closest IK solution: {closest_solution}")
-        robot.move_to_q(closest_solution)
-        robot.wait_for_motion_stop()
+        #robot.move_to_q(closest_solution)
+        #robot.wait_for_motion_stop()
 
         # Update reference solution
 

@@ -107,7 +107,7 @@ def main():
     z_start = 0.4  # Fixed Z height
     phi = np.deg2rad(45)  # Fixed orientation
 
-    ik_solutions = robot.ik(x=x_start, y=y_start, z=z_start, phi=phi)
+    ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
     if not ik_solutions:
         print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
         robot.close()
@@ -122,7 +122,7 @@ def main():
     # Step 5: Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
         z = 0.2  # Constant Z height for simplicity
-        ik_solutions = robot.ik(x=x, y=y, z=z, phi=phi)
+        ik_solutions = robot.ik_xyz(x=x, y=y, z=z)
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z})")
             continue
