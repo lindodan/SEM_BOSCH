@@ -6,7 +6,8 @@ from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
 # Initialize the robot
-robot = RobotBosch(tty_dev=None)
+robot = RobotBosch()
+robot.initialize()
 
 # Path to the saved coordinates file
 script_dir = Path(__file__).parent.parent
@@ -114,18 +115,18 @@ def main():
         # Handle transition from Zone 2 to Zone 3
         if previous_zone == 2 and zone == 3:
             print("Transitioning from Zone 2 to Zone 3: Rising up to safe height...")
-            #robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_rise)[0])  # Move up
-            #robot.wait_for_motion_stop()
+            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_rise)[0])  # Move up
+            robot.wait_for_motion_stop()
 
         # Move to the point with the chosen IK solution
-        #robot.move_to_q(chosen_solution)
-        #robot.wait_for_motion_stop()
+        robot.move_to_q(chosen_solution)
+        robot.wait_for_motion_stop()
 
         # Lower back to drawing height after transition
         if previous_zone == 2 and zone == 3:
             print("Lowering back to drawing height...")
-            #robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_drawing)[0])
-            #robot.wait_for_motion_stop()
+            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_drawing)[0])
+            robot.wait_for_motion_stop()
 
         # Track Zone 2 points
         if zone == 2:
@@ -144,9 +145,10 @@ def main():
         print("\nRevisiting last two points from Zone 2...")
         for idx, (x, y, solution) in enumerate(last_zone_2_points):
             print(f"Revisiting Zone 2 Point {idx}: ({x}, {y}, {z_drawing}) with solution: {solution}")
-            #robot.move_to_q(solution)
-            #robot.wait_for_motion_stop()
+            robot.move_to_q(solution)
+            robot.wait_for_motion_stop()
 
-
+    robot.soft_home()
+    robot.close()
 if __name__ == "__main__":
     main()
