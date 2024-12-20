@@ -124,6 +124,7 @@ def main():
     for x, y in ordered_coordinates:
         z = 0.2  # Constant Z height for simplicity
         ik_solutions = robot.ik_xyz(x=x, y=y, z=z)
+
         print(f"IK solutions: {len(ik_solutions)}")
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z})")

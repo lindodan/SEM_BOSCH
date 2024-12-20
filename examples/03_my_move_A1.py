@@ -119,6 +119,7 @@ def main():
     robot.move_to_q(reference_solution)
     robot.wait_for_motion_stop()
 
+
     # Step 5: Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
         z = 0.2  # Constant Z height for simplicity
