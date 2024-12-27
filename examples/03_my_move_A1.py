@@ -152,6 +152,7 @@ def main():
         ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z_drawing})")
+            robot.close()
             continue
 
         # Select the solution closest to the reference solution
@@ -166,6 +167,16 @@ def main():
 
         # Update reference solution
         reference_solution = closest_solution
+
+    # From last point go up
+    x,y = ordered_coordinates[-1]
+    ik_solutions = robot.ik_xyz(x=x, y=y, z=z_start)
+    closest_solution = min(
+        ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+    )
+    if not simulation:
+        robot.move_to_q(closest_solution)
+        robot.wait_for_motion_stop()
 
     # Close the robot connection
     robot.soft_home()
