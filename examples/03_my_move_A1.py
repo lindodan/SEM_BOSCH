@@ -117,6 +117,9 @@ def main():
     Main function
     :return:
     '''
+    # Heights for used in task
+    z_start = 0.4
+    z_drawing = 0.186
 
     # Load and reduce trajectory
     coordinates = read_coordinates(coordinates_file)
@@ -130,7 +133,6 @@ def main():
 
     #Solve IK for the first point to fix initial configuration
     x_start, y_start = ordered_coordinates[0]
-    z_start = 0.4  # Fixed Z start height
     ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
     if not ik_solutions:
         print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
@@ -145,12 +147,11 @@ def main():
         robot.wait_for_motion_stop()
 
 
-    # Step 5: Execute trajectory with fixed IK solution
+    # Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
-        z = 0.2  # Constant Z height for simplicity
-        ik_solutions = robot.ik_xyz(x=x, y=y, z=z)
+        ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
         if not ik_solutions:
-            print(f"No IK solution for point ({x}, {y}, {z})")
+            print(f"No IK solution for point ({x}, {y}, {z_drawing})")
             continue
 
         # Select the solution closest to the reference solution
@@ -158,15 +159,15 @@ def main():
             ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
         )
 
-        print(f"Moving to ({x}, {y}, {z}) with closest IK solution: {closest_solution}")
-        robot.move_to_q(closest_solution)
-        robot.wait_for_motion_stop()
+        print(f"Moving to ({x}, {y}, {z_drawing}) with closest IK solution: {closest_solution}")
+        if not simulation:
+            robot.move_to_q(closest_solution)
+            robot.wait_for_motion_stop()
 
         # Update reference solution
-
         reference_solution = closest_solution
 
-    # Step 6: Close the robot connection
+    # Close the robot connection
     robot.soft_home()
     robot.close()
     print("Trajectory execution complete.")
