@@ -1,58 +1,84 @@
 #!/usr/bin/env python
 #
-# Copyright (c) CTU -- All Rights Reserved
-# Created on: 2023-10-31
-#     Author: Vladimir Petrik <vladimir.petrik@cvut.cz>
-#
+
 import numpy as np
 import cv2
 from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
-# Initialize the robot
-robot = RobotBosch()
-robot.initialize()
+simulation = True
+if simulation:
+    robot = RobotBosch(tty_dev=None)
+else:
+    # Initialize the robot
+    robot = RobotBosch()
+    robot.initialize()
 
 # Path to the saved coordinates file
 script_dir = Path(__file__).parent.parent
 coordinates_file = script_dir / "drawings" / "robot_coordinates.txt"
 
 
-# Function to read coordinates from file
 def read_coordinates(file_path):
+    '''
+    Function that maps coordinates from a file to numpy array
+    :param file_path:
+    :return: coordinates
+    '''
     with open(file_path, "r") as f:
         return [tuple(map(float, line.strip().split(","))) for line in f]
 
 def euclidean_distance(p1, p2):
+    '''
+    Function that calculates the Euclidean distance between two points
+    :param p1:
+    :param p2:
+    :return: Distance between the two points
+    '''
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-
-# Function to approximate the path with fewer points
 def approximate_path(points, num_points):
+    '''
+    Function that approximates the path so the robot does not move from pixel to pixel
+    and can move more smoothly
+    :param points:
+    :param num_points:
+    :return:
+    '''
     indices = np.linspace(0, len(points) - 1, num_points, dtype=int)
     return [points[i] for i in indices]
 
-# Function to reorder points by connecting the closest pair
 def reorder_points_by_distance(points):
+    '''
+    Function that reorders the points according to the distance
+    so we connect the two closest ones
+    :param points:
+    :return: ordedred points
+    '''
     ordered_points = [points[0]]  # Start with the first point
     remaining_points = points[1:]  # The rest of the points
 
     while remaining_points:
         last_point = ordered_points[-1]
-        # Find the closest point to the last ordered point
+        # Find the closest point to the last ordered point by Euclidean distance
         closest_point = min(remaining_points, key=lambda p: euclidean_distance(last_point, p))
         ordered_points.append(closest_point)
         remaining_points.remove(closest_point)
 
     return ordered_points
 
-# Function to map coordinates for visualization
 def map_coordinates(points, img_size, padding=10):
+    '''
+    Function that maps coordinates to numpy array for visualization purposes
+    :param points:
+    :param img_size:
+    :param padding:
+    :return:
+    '''
     x_coords, y_coords = zip(*points)
     x_min, x_max = min(x_coords), max(x_coords)
     y_min, y_max = min(y_coords), max(y_coords)
 
-    # Uniform scaling factor to preserve aspect ratio
     scale = min(
         (img_size - 2 * padding) / (x_max - x_min),
         (img_size - 2 * padding) / (y_max - y_min),
@@ -60,13 +86,17 @@ def map_coordinates(points, img_size, padding=10):
 
     return [
         (int((x - x_min) * scale + padding),
-         int(img_size - ((y - y_min) * scale + padding)))  # Flip Y-axis
+         int(img_size - ((y - y_min) * scale + padding)))
         for x, y in points
     ]
 
-
-# Function to visualize path
 def visualize_path(points, img_size=500):
+    '''
+    Function that visualizes the trajecotory of robot
+    :param points:
+    :param img_size:
+    :return:
+    '''
     img = np.zeros((img_size, img_size, 3), dtype=np.uint8)
     mapped_points = map_coordinates(points, img_size)
 
@@ -82,31 +112,25 @@ def visualize_path(points, img_size=500):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
-# Main program logic
 def main():
-    # Step 1: Load and reduce trajectory points
+    '''
+    Main function
+    :return:
+    '''
+
+    # Load and reduce trajectory
     coordinates = read_coordinates(coordinates_file)
     reduced_coordinates = approximate_path(coordinates, num_points=20)
 
-    print("Reduced Coordinates:")
-    for coord in reduced_coordinates:
-        print(coord)
-
-    # Step 2: Reorder the reduced coordinates by connecting closest points
+    #Reorder the reduced coordinates by connecting two closest points
     ordered_coordinates = reorder_points_by_distance(reduced_coordinates)
 
-    print("Ordered Coordinates by Proximity:")
-    for coord in ordered_coordinates:
-        print(coord)
-
-    # Step 3: Visualize the reordered path
+    #Visualize the reordered path
     visualize_path(ordered_coordinates)
-    # Step 4: Solve IK for the first point to fix initial configuration
-    x_start, y_start = ordered_coordinates[0]
-    z_start = 0.4  # Fixed Z height
-    phi = np.deg2rad(45)  # Fixed orientation
 
+    #Solve IK for the first point to fix initial configuration
+    x_start, y_start = ordered_coordinates[0]
+    z_start = 0.4  # Fixed Z start height
     ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
     if not ik_solutions:
         print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
@@ -116,8 +140,9 @@ def main():
     # Use the first valid solution for the entire trajectory
     reference_solution = ik_solutions[0]
     print(f"Using fixed joint configuration: {reference_solution}")
-    robot.move_to_q(reference_solution)
-    robot.wait_for_motion_stop()
+    if not simulation:
+        robot.move_to_q(reference_solution)
+        robot.wait_for_motion_stop()
 
 
     # Step 5: Execute trajectory with fixed IK solution

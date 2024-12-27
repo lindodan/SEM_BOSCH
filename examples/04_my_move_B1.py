@@ -9,9 +9,13 @@ import cv2
 from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
-# Initialize the robot
-robot = RobotBosch()
-robot.initialize()
+simulation = True
+if simulation:
+    robot = RobotBosch(tty_dev=None)
+else:
+    # Initialize the robot
+    robot = RobotBosch()
+    robot.initialize()
 
 # Path to the saved coordinates file
 script_dir = Path(__file__).parent.parent
