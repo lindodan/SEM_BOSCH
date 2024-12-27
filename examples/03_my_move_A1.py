@@ -48,15 +48,35 @@ def approximate_path(points, num_points):
     indices = np.linspace(0, len(points) - 1, num_points, dtype=int)
     return [points[i] for i in indices]
 
+
+def select_initial_point(points):
+    '''
+    Selects the initial point based on the lowest x-value
+    and within ±15 pixels on the y-axis from the current first point.
+    :param points:
+    :return: selected initial point
+    '''
+    initial_y = points[0][1]
+    filtered_points = [p for p in points if abs(p[1] - initial_y) <= 15]
+
+    if not filtered_points:
+        raise ValueError("No points within ±15 pixels of the y-axis from the initial point.")
+
+    return min(filtered_points, key=lambda p: p[0])
+
+
 def reorder_points_by_distance(points):
     '''
     Function that reorders the points according to the distance
-    so we connect the two closest ones
+    so we connect the two closest ones, starting from the selected initial point.
     :param points:
-    :return: ordedred points
+    :return: ordered points
     '''
-    ordered_points = [points[0]]  # Start with the first point
-    remaining_points = points[1:]  # The rest of the points
+    initial_point = select_initial_point(points)
+    points.remove(initial_point)
+
+    ordered_points = [initial_point]  # Start with the selected initial point
+    remaining_points = points  # The rest of the points
 
     while remaining_points:
         last_point = ordered_points[-1]
@@ -66,6 +86,7 @@ def reorder_points_by_distance(points):
         remaining_points.remove(closest_point)
 
     return ordered_points
+
 
 def map_coordinates(points, img_size, padding=10):
     '''
@@ -123,7 +144,7 @@ def main():
 
     # Load and reduce trajectory
     coordinates = read_coordinates(coordinates_file)
-    reduced_coordinates = approximate_path(coordinates, num_points=20)
+    reduced_coordinates = approximate_path(coordinates, num_points=25)
 
     #Reorder the reduced coordinates by connecting two closest points
     ordered_coordinates = reorder_points_by_distance(reduced_coordinates)
