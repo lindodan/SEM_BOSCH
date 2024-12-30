@@ -116,7 +116,7 @@ def map_coordinates(points, img_size, padding=100):
 
 def visualize_path(points, img_size=500):
     '''
-    Function that visualizes the trajecotory of robot
+    Function that visualizes the trajectory of robot
     :param points:
     :param img_size:
     :return:
