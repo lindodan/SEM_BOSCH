@@ -136,96 +136,138 @@ def visualize_path(points, img_size=500):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# Main program logic
-def main():
-    coordinates = read_coordinates(coordinates_file)
-    reduced_coordinates = approximate_path(coordinates, num_points=20)
+def revisit_points(trajectory, idx, reference_solution, number_of_points = 3):
+    '''
+    Function that revisits last x points with different IK solution
+    :param trajectory:
+    :param idx:
+    :param reference_solution:
+    :param number_of_points:
+    :return:
+    '''
+    z_start = 0.4
+    z_draw = 0.186
 
-    ordered_coordinates = reorder_points_by_distance(reduced_coordinates)
-    visualize_path(ordered_coordinates)
-
-    reference_solution = None
-    # Initialize variables for tracking zones
-    previous_zone = None
-    zone_3_solution = None
-    last_zone_2_points = []  # To store the last two Zone 2 points with their original indexes
-    z_drawing = 0.2
-
-    for idx, (x, y) in enumerate(ordered_coordinates):
-        z_drawing = 0.2  # Drawing height
-        z_rise = 0.5  # Safe height
-        ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
-
-        if not ik_solutions:
-            print(f"No IK solution for point ({x}, {y}, {z_drawing}). Skipping...")
-            continue
-
-        # Determine the zone and the chosen IK solution
-        if len(ik_solutions) == 1:
-            chosen_solution = ik_solutions[0]
-            zone = 1 if reference_solution is None or np.array_equal(reference_solution, chosen_solution) else 3
-        else:
-            if reference_solution is None:
-                chosen_solution = ik_solutions[0]
-            else:
-                chosen_solution = min(
-                    ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
-                )
-            zone = 2
-
-        print(f"Point {idx}: Zone {zone}, Moving to ({x}, {y}, {z_drawing}) with solution: {chosen_solution}")
-
-        # Handle transition from Zone 2 to Zone 3
-        if previous_zone == 2 and zone == 3:
-            print("Transitioning from Zone 2 to Zone 3: Revisiting Zone 2 points using Zone 3 IK solution...")
-            for revisit_idx, (original_idx, px, py, _) in enumerate(last_zone_2_points):
-                revisit_ik_solutions = robot.ik_xyz(x=px, y=py, z=z_drawing)
-                print(f"revisit ik solutions : {revisit_ik_solutions}")
-                if revisit_ik_solutions:
-                    zone_3_revisit_solution = min(
-                    revisit_ik_solutions, key=lambda q: np.linalg.norm(q - chosen_solution))  # Use the first solution from Zone 3
-                    print(f"Revisiting Zone 2 Point {revisit_idx} (Original Index: {original_idx}) with Zone 3 solution: {zone_3_revisit_solution}")
-                    robot.move_to_q(robot.ik_xyz(x=px, y=py, z=z_rise)[0])  # Move up
-                    robot.wait_for_motion_stop()
-                    robot.move_to_q(zone_3_revisit_solution)
-                    robot.wait_for_motion_stop()
-
-            print("Rising up to safe height before entering Zone 3...")
-            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_rise)[0])  # Move up to safe height
-            robot.wait_for_motion_stop()
-
-        # Move to the point with the chosen IK solution
-        robot.move_to_q(chosen_solution)
+    # Move up
+    coords, ik = trajectory[idx-1]
+    x,y = coords
+    ik_solutions = robot.ik_xyz(x=x, y=y,z=z_start)
+    closest_solution = max(
+        ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+    )
+    print(f"Moving up from point {idx-1} with IK solution: {closest_solution}")
+    if not simulation:
+        robot.move_to_q(closest_solution)
+        robot.wait_for_motion_stop()
+    closest_solution = min(
+        ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+    )
+    print(f"Changing IK solution: {closest_solution}")
+    if not simulation:
+        robot.move_to_q(closest_solution)
         robot.wait_for_motion_stop()
 
-        # Lower back to drawing height after transition
-        if previous_zone == 2 and zone == 3:
-            print("Lowering back to drawing height...")
-            robot.move_to_q(robot.ik_xyz(x=x, y=y, z=z_drawing)[0])
+    reference_solution = closest_solution
+
+    # Revisit points
+    for i in range(number_of_points,0,-1):
+        coord,ik_solutions = trajectory[idx-i]
+        closest_solution = min(
+            ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+        )
+        print(f"Revisiting point {idx-i} with closest different solution: {closest_solution}")
+        if not simulation:
+            robot.move_to_q(closest_solution)
             robot.wait_for_motion_stop()
 
-        # Track Zone 2 points
-        if zone == 2:
-            last_zone_2_points.append((idx, x, y, chosen_solution))  # Include original index
-            if len(last_zone_2_points) > 2:
-                last_zone_2_points.pop(0)  # Keep only the last two points
 
-        # Track the previous zone
-        previous_zone = zone
+
+def main():
+    '''
+    Main function
+    :return:
+    '''
+
+    # Heights for used in task
+    z_start = 0.4
+    z_drawing = 0.186
+
+    # Trajectory
+    trajectory = {}
+
+    # Load and reduce trajectory points
+    coordinates = read_coordinates(coordinates_file)
+    reduced_coordinates = approximate_path(coordinates, num_points=25)
+
+    #Reorder the reduced coordinates by connecting two closest points
+    ordered_coordinates = reorder_points_by_distance(reduced_coordinates)
+
+    # Visualize the reordered path
+    visualize_path(ordered_coordinates)
+
+    # Solve IK for the first point
+    x_start, y_start = ordered_coordinates[0]
+
+    ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
+    if not ik_solutions:
+        print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
+        robot.close()
+        return
+
+    reference_solution = ik_solutions[0]
+    if not simulation:
+        robot.move_to_q(reference_solution)
+        robot.wait_for_motion_stop()
+
+    # Generate IK solutions for every point
+    for idx, (x, y) in enumerate(ordered_coordinates):
+        ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
+        trajectory[idx] = ((x, y), ik_solutions)
+        if not ik_solutions:
+            print(f"No IK solution for point {idx} ({x}, {y}, {z_drawing}).")
+            break
+
+    # Reference solution for IK
+    _, reference_solution = trajectory[0]
+
+    change_ik = False
+    revisit  = True
+    for idx, point in enumerate(trajectory):
+        coords, ik_solutions = trajectory[idx]
+        if len(ik_solutions) >= 2:
+            change_ik = True
+        if change_ik and len(ik_solutions) == 1 and revisit:
+            revisit_points(trajectory,idx,ik_solutions)
+            revisit = False
+
+        # Select the solution closest to the reference solution
+        closest_solution = min(
+            ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+        )
+
+        print(f"Moving to point {idx} with closest IK solution: {closest_solution}")
+        if not simulation:
+            robot.move_to_q(closest_solution)
+            robot.wait_for_motion_stop()
 
         # Update reference solution
-        reference_solution = chosen_solution
+        reference_solution = closest_solution
 
-    # Revisit the last two points from Zone 2
-    if last_zone_2_points:
-        print("\nRevisiting last two points from Zone 2...")
-        for revisit_idx, (original_idx, x, y, solution) in enumerate(last_zone_2_points):
-            print(
-                f"Revisiting Zone 2 Point {revisit_idx} (Original Index: {original_idx}): ({x}, {y}, {z_drawing}) with solution: {solution}")
-            robot.move_to_q(solution)
-            robot.wait_for_motion_stop()
+    # From last point go up
+    x,y = ordered_coordinates[-1]
+    ik_solutions = robot.ik_xyz(x=x, y=y, z=z_start)
+    closest_solution = min(
+        ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
+    )
+    print(f"Moving up from  last point")
+    if not simulation:
+        robot.move_to_q(closest_solution)
+        robot.wait_for_motion_stop()
 
+    # Close the robot connection
     robot.soft_home()
+    robot.close()
+    print("Trajectory execution complete.")
 
 
 if __name__ == "__main__":
