@@ -160,8 +160,6 @@ def main():
     x_start, y_start = ordered_coordinates[0]
 
     ik_solutions = robot.ik_xyz(x=x_start, y=y_start, z=z_start)
-    print(f"IK solutions: {ik_solutions}")
-    print(f"IK solutions: {len(ik_solutions)}")
     if not ik_solutions:
         print(f"No IK solution for start point ({x_start}, {y_start}, {z_start})")
         robot.close()
@@ -183,8 +181,6 @@ def main():
     for x, y in ordered_coordinates:
         ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
 
-        print(f"IK solutions: {ik_solutions}")
-        print(f"IK solutions: {len(ik_solutions)}")
         if not ik_solutions:
             print(f"No IK solution for point ({x}, {y}, {z_drawing})")
             continue
@@ -196,11 +192,10 @@ def main():
 
         print(f"Moving to ({x}, {y}, {z_drawing}) with closest IK solution: {closest_solution}")
         if not simulation:
-            robot.move_to_q(reference_solution)
+            robot.move_to_q(closest_solution)
             robot.wait_for_motion_stop()
 
         # Update reference solution
-
         reference_solution = closest_solution
 
     # From last point go up
@@ -209,6 +204,7 @@ def main():
     closest_solution = min(
         ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
     )
+    print(f"Moving up from  last point")
     if not simulation:
         robot.move_to_q(closest_solution)
         robot.wait_for_motion_stop()
