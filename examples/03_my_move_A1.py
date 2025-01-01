@@ -195,6 +195,7 @@ def main():
     closest_solution = min(
         ik_solutions, key=lambda q: np.linalg.norm(q - reference_solution)
     )
+    print(f"Moving up from  last point")
     if not simulation:
         robot.move_to_q(closest_solution)
         robot.wait_for_motion_stop()
