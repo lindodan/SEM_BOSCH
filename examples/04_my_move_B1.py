@@ -179,7 +179,7 @@ def main():
         robot.move_to_q(reference_solution)
         robot.wait_for_motion_stop()
 
-    # Step 5: Execute trajectory with fixed IK solution
+    # Execute trajectory with fixed IK solution
     for x, y in ordered_coordinates:
         ik_solutions = robot.ik_xyz(x=x, y=y, z=z_drawing)
 
@@ -213,7 +213,7 @@ def main():
         robot.move_to_q(closest_solution)
         robot.wait_for_motion_stop()
 
-    # Step 6: Close the robot connection
+    # Close the robot connection
     robot.soft_home()
     robot.close()
     print("Trajectory execution complete.")
