@@ -9,7 +9,8 @@ image_path = script_dir / "C-1.png"
 img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
 # Invert the image to black background and white line (binary values)   0 black 255 white
-_, binary_img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+blur_img = cv2.GaussianBlur(img, (5, 5), 0)
+_, binary_img = cv2.threshold(blur_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 cv2.imshow("Binary Image", binary_img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
