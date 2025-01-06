@@ -5,7 +5,7 @@ from pathlib import Path
 # Load image from directory
 script_dir = Path(__file__).parent.parent / 'drawings'
 print(f"Script directory: {script_dir}")
-image_path = script_dir / "C-1.png"
+image_path = script_dir / "B-1.png"
 img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
 # Invert the image to black background and white line (binary values)   0 black 255 white

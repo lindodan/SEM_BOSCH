@@ -5,7 +5,8 @@ import cv2
 from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
-simulation = True
+simulation = False
+
 if simulation:
     robot = RobotBosch(tty_dev=None)
 else:
@@ -146,7 +147,7 @@ def revisit_points(trajectory, idx, reference_solution, number_of_points = 3):
     :return:
     '''
     z_start = 0.4
-    z_draw = 0.186
+    z_draw = 0.178
 
     # Move up
     coords, ik = trajectory[idx-1]
@@ -190,7 +191,7 @@ def main():
 
     # Heights for used in task
     z_start = 0.4
-    z_drawing = 0.186
+    z_drawing = 0.178
 
     # Trajectory
     trajectory = {}
