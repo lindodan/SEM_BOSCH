@@ -6,7 +6,7 @@ import cv2
 from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
-simulation = True
+simulation = False
 if simulation:
     robot = RobotBosch(tty_dev=None)
 else:
@@ -144,7 +144,8 @@ def main():
 
     # Heights for used in task
     z_start = 0.4
-    z_drawing = 0.186
+    z_drawing = 0.176
+
 
     # Load and reduce trajectory points
     coordinates = read_coordinates(coordinates_file)

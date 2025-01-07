@@ -6,7 +6,7 @@ import cv2
 from pathlib import Path
 from ctu_bosch_sr450 import RobotBosch
 
-simulation = True
+simulation = False
 if simulation:
     robot = RobotBosch(tty_dev=None)
 else:
